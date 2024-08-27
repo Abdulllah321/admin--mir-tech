@@ -122,6 +122,35 @@
         .add-project-button:hover {
             background: #0056b3;
         }
+
+        .project-item img {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+
+        .project-item-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .project-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-details h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .project-details span {
+            font-size: 0.9rem;
+            color: #777;
+        }
     </style>
 </head>
 
@@ -156,9 +185,24 @@
                 <% projects.forEach(project=> { %>
                     <% if (!project.deleted) { %>
                         <li class="project-item">
-                            <a href="/projects/<%= project._id %>">
-                                <%= project.title %>
-                            </a>
+                            <div class="project-item-content">
+                                <% if (project.imageUrl) { %>
+                                    <img src="<%= project.imageUrl %>" alt="Project Image">
+                                    <% } %>
+                                        <div class="project-details">
+                                            <% if (project.title) { %>
+                                                <a href="/projects/<%= project._id %>">
+                                                    <h3>
+                                                        <%= project.title %>
+                                                    </h3>
+                                                </a>
+                                                <% } else { %>
+                                                    <h3 style="color: red;">No Title</h3>
+                                                    <% } %>
+                                                        <span>Category: <%= project.category %></span>
+                                        </div>
+
+                            </div>
                             <div>
                                 <a href="/project-form/<%= project._id %>" class="edit-icon" title="Edit">
                                     <i class="fa fa-edit"></i>Edit

@@ -5,11 +5,12 @@ const multer = require("multer");
 const path = require("path");
 const admin = require("../models/admin");
 const { ensureAuthenticated } = require("./adminRoutes");
+const { ok } = require("assert");
 
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, "public/uploads/");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -104,14 +105,14 @@ router.post("/projects/:id", upload.single("image"), async (req, res) => {
   }
 });
 
-// Handle project deletion
 router.delete("/projects/:id", async (req, res) => {
   try {
     const result = await Project.findByIdAndDelete(req.params.id);
     if (!result) {
       return res.status(404).send("Project not found");
     }
-    res.redirect("/");
+    res.status(200).send("ok");
+    // res.redirect("/");
   } catch (err) {
     console.error("Error deleting project:", err);
     res.status(500).send(err.message);
