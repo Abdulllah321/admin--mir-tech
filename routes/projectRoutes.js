@@ -17,6 +17,7 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
+const uploadMultiple = multer({ storage: storage }).array("images", 50);
 
 router.get("/", ensureAuthenticated, async (req, res) => {
   try {
@@ -28,6 +29,29 @@ router.get("/", ensureAuthenticated, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+router.post("/projects/multiple", uploadMultiple, async (req, res) => {
+  try {
+    const { title, description, category } = req.body;
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).send("No files uploaded");
+    }
+
+    const projects = req.files.map((file) => ({
+      title: title || "Untitled Project", 
+      description: description || "No description provided",
+      category: "graphic",
+      imageUrl: `/uploads/${file.filename}`,
+    }));
+    await Project.insertMany(projects);
+    res.redirect("/");
+  } catch (err) {
+    console.error("Error creating multiple projects:", err);
+    res.status(500).send(err.message);
+  }
+});
+
 router.get("/test", ensureAuthenticated, async (req, res) => {
   try {
     const projects = await Project.find({});
@@ -54,6 +78,10 @@ router.get("/project-form/:id", async (req, res) => {
 
 router.get("/project-form", (req, res) => {
   res.render("project-form", { isEdit: false });
+});
+
+router.get("/multiple", (req, res) => {
+  res.render("multiple");
 });
 
 router.post("/projects", upload.single("image"), async (req, res) => {
