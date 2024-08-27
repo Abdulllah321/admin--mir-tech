@@ -203,9 +203,6 @@
                                     </option>
                                 </select>
 
-                                <!-- Dynamic fields based on category -->
-                                <div id="dynamicFields"></div>
-
                                 <label for="image" class="type-file">Upload Image</label>
                                 <input type="file" id="image" name="image" accept="image/*" hidden>
 
@@ -231,92 +228,7 @@
                     <a href="/">Back to Home</a>
                 </div>
     </div>
-    <script>
-        document.getElementById('category').addEventListener('change', function () {
-            const category = this.value;
-            const dynamicFields = document.getElementById('dynamicFields');
-            dynamicFields.innerHTML = ''; // Clear previous fields
-
-            if (category === 'graphic') {
-                dynamicFields.innerHTML = `
-                    <label for="graphicDetail">Graphic Detail:</label>
-                    <input type="text" id="graphicDetail" name="graphicDetail" placeholder="Enter graphic detail">
-                `;
-            } else if (category === 'website') {
-                dynamicFields.innerHTML = `
-                    <label for="websiteUrl">Website URL:</label>
-                    <input type="text" id="websiteUrl" name="websiteUrl" placeholder="Enter website URL">
-                `;
-            } else if (category === 'application') {
-                dynamicFields.innerHTML = `
-                    <label for="appPlatform">Platform:</label>
-                    <input type="text" id="appPlatform" name="appPlatform" placeholder="Enter platform (e.g., iOS, Android)">
-                `;
-            } else if (category === 'marketing') {
-                dynamicFields.innerHTML = `
-                    <label for="campaignDetail">Campaign Detail:</label>
-                    <textarea id="campaignDetail" name="campaignDetail" placeholder="Enter campaign detail"></textarea>
-                `;
-            }
-        });
-
-        // Initialize dynamic fields based on the pre-selected category
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('category').dispatchEvent(new Event('change'));
-        });
-
-        document.getElementById('image').addEventListener('change', function () {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-                    let img = imagePreviewContainer.querySelector('img');
-                    if (img) {
-                        img.src = event.target.result;
-                    } else {
-                        img = document.createElement('img');
-                        img.src = event.target.result;
-                        img.alt = 'Image Preview';
-                        img.classList.add('image-preview');
-                        imagePreviewContainer.appendChild(img);
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        document.getElementById('projectForm').addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            const formData = new FormData(this);
-            const xhr = new XMLHttpRequest();
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-
-            xhr.open(this.method, this.action, true);
-
-            xhr.upload.onprogress = function (event) {
-                if (event.lengthComputable) {
-                    const percentComplete = Math.round((event.loaded / event.total) * 100);
-                    progressBar.style.width = percentComplete + '%';
-                    progressText.textContent = percentComplete + '%';
-                    progressContainer.style.display = 'flex';
-                }
-            };
-
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    window.location.href = '/';
-                } else {
-                    alert('An error occurred while uploading the file.');
-                }
-            };
-
-            xhr.send(formData);
-        });
-    </script>
+  
 </body>
 
 </html>
