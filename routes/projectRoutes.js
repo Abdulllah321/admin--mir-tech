@@ -6,7 +6,6 @@ const path = require("path");
 const admin = require("../models/admin");
 const { ensureAuthenticated } = require("./adminRoutes");
 const { ok } = require("assert");
-
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -39,7 +38,7 @@ router.post("/projects/multiple", uploadMultiple, async (req, res) => {
     }
 
     const projects = req.files.map((file) => ({
-      title: title || "Untitled Project", 
+      title: title || "Untitled Project",
       description: description || "No description provided",
       category: "graphic",
       imageUrl: `/uploads/${file.filename}`,
@@ -60,6 +59,26 @@ router.get("/test", ensureAuthenticated, async (req, res) => {
   } catch (err) {
     console.error("Error fetching projects:", err);
     res.status(500).send("Server Error");
+  }
+});
+
+router.get("/projects/category/:category", async (req, res) => {
+  try {
+    const { category } = req.params;
+
+    // Fetch projects by category
+    const projects = await Project.find({ category });
+
+    // If no projects are found, return a 404 status
+    if (projects.length === 0) {
+      return res.status(404).send("No projects found for this category");
+    }
+
+    // Return the projects as JSON
+    res.json(projects);
+  } catch (err) {
+    console.error("Error fetching projects by category:", err);
+    res.status(500).send(err.message);
   }
 });
 

@@ -8,6 +8,7 @@ const projectRoutes = require("./routes/projectRoutes");
 require("dotenv").config();
 const app = express();
 const methodOverride = require("method-override");
+const cors = reuqire("cors")
 
 // Connect to MongoDB
 mongoose
@@ -20,6 +21,7 @@ app.use(methodOverride("_method"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+app.use(cors());
 
 app.post("/test", (req, res) => {
   res.send(`Method: ${req.method}, _method: ${req.body._method}`);
