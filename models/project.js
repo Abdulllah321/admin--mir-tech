@@ -17,10 +17,11 @@ const marketingDetailsSchema = new mongoose.Schema({
   campaignDetail: { type: String },
 });
 
+// Main Project schema
 const projectSchema = new mongoose.Schema(
   {
-    title: { type: String },
-    description: { type: String },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
     category: {
       type: String,
       enum: ["graphic", "website", "application", "marketing"],
@@ -28,10 +29,77 @@ const projectSchema = new mongoose.Schema(
     },
     imageUrl: { type: String },
     details: {
-      type: String,
+      type: mongoose.Schema.Types.Mixed, // Use Mixed type for flexible data structure
+      required: true,
+      validate: {
+        validator: function (value) {
+          // Validation to ensure correct sub-schema for each category
+          if (this.category === "graphic" && !value.graphicDetail) {
+            return false;
+          }
+          if (this.category === "website" && !value.websiteUrl) {
+            return false;
+          }
+          if (this.category === "application" && !value.appPlatform) {
+            return false;
+          }
+          if (this.category === "marketing" && !value.campaignDetail) {
+            return false;
+          }
+          return true;
+        },
+        message: "Details are missing or invalid for the selected category",
+      },
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Project", projectSchema);
+// Apply sub-schemas as per the category
+projectSchema.virtual("graphicDetails", {
+  ref: "GraphicDetail",
+  localField: "details",
+  foreignField: "_id",
+  justOne: true,
+});
+
+projectSchema.virtual("websiteDetails", {
+  ref: "WebsiteDetail",
+  localField: "details",
+  foreignField: "_id",
+  justOne: true,
+});
+
+projectSchema.virtual("applicationDetails", {
+  ref: "ApplicationDetail",
+  localField: "details",
+  foreignField: "_id",
+  justOne: true,
+});
+
+projectSchema.virtual("marketingDetails", {
+  ref: "MarketingDetail",
+  localField: "details",
+  foreignField: "_id",
+  justOne: true,
+});
+
+// Create model for each type of details
+const GraphicDetail = mongoose.model("GraphicDetail", graphicDetailsSchema);
+const WebsiteDetail = mongoose.model("WebsiteDetail", websiteDetailsSchema);
+const ApplicationDetail = mongoose.model(
+  "ApplicationDetail",
+  applicationDetailsSchema
+);
+const MarketingDetail = mongoose.model(
+  "MarketingDetail",
+  marketingDetailsSchema
+);
+
+module.exports = {
+  Project: mongoose.model("Project", projectSchema),
+  GraphicDetail,
+  WebsiteDetail,
+  ApplicationDetail,
+  MarketingDetail,
+};
