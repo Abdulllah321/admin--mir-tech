@@ -11,7 +11,7 @@ const cors = require("cors");
 const NodeCache = require("node-cache"); // Import node-cache
 
 // Initialize a new instance of node-cache
-const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 }); // TTL of 60 seconds and check every 120 seconds
+const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
 
 // Connect to MongoDB
 mongoose
