@@ -8,7 +8,7 @@ const projectRoutes = require("./routes/projectRoutes");
 require("dotenv").config();
 const app = express();
 const methodOverride = require("method-override");
-const cors = reuqire("cors")
+const cors = require("cors");
 
 // Connect to MongoDB
 mongoose
