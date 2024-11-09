@@ -9,6 +9,7 @@ const app = express();
 const methodOverride = require("method-override");
 const cors = require("cors");
 const NodeCache = require("node-cache"); // Import node-cache
+const Project = require("./models/project");
 
 // Initialize a new instance of node-cache
 const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
@@ -46,19 +47,11 @@ app.use("/", projectRoutes);
 // API for fetching projects with caching using NodeCache
 app.get("/api/project", async (req, res) => {
   try {
-    // Destructure query parameters for pagination, sorting, and filtering
-    const {
-      page = 1,
-      limit = 10,
-      sortBy = "createdAt",
-      order = "desc",
-      category,
-    } = req.query;
+    // Destructure query parameter for filtering by category
+    const { category } = req.query;
 
     // Build a cache key based on query parameters for unique caching
-    const cacheKey = `projects:${page}:${limit}:${sortBy}:${order}:${
-      category || "all"
-    }`;
+    const cacheKey = `projects:${category || "all"}`;
 
     // Check NodeCache cache first
     const cachedProjects = cache.get(cacheKey);
@@ -72,19 +65,12 @@ app.get("/api/project", async (req, res) => {
 
     // Use lean queries for faster performance (no Mongoose document conversion)
     const projects = await Project.find(filter)
-      .sort({ [sortBy]: order === "desc" ? -1 : 1 }) // Sorting by provided field and order
-      .skip((page - 1) * limit) // Skip items for pagination
-      .limit(parseInt(limit)) // Limit the number of projects per page
+      .sort({ createdAt: -1 }) // Sort by creation date in descending order
       .lean(); // Use lean for faster and memory-efficient results
-
-    // Count the total number of projects for pagination metadata
-    const totalProjects = await Project.countDocuments(filter);
 
     // Prepare the response data
     const response = {
-      totalProjects,
-      currentPage: parseInt(page),
-      totalPages: Math.ceil(totalProjects / limit),
+      totalProjects: projects.length,
       projects,
     };
 
@@ -97,6 +83,7 @@ app.get("/api/project", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 // Error handling
 app.use((req, res, next) => {
