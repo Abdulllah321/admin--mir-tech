@@ -5,7 +5,20 @@ const multer = require("multer");
 const path = require("path");
 const admin = require("../models/admin");
 const { ensureAuthenticated } = require("./adminRoutes");
-const { ok } = require("assert");
+
+const NodeCache = require("node-cache");
+const cache = new NodeCache(); // Initialize cache
+
+// Function to clear cache
+const clearCache = (key = "projects_cache") => {
+  try {
+    cache.del(key); // Clears cache for 'projects_cache' key
+    console.log(`Cache cleared for ${key}.`);
+  } catch (err) {
+    console.error("Error clearing cache:", err);
+  }
+};
+
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -18,6 +31,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 const uploadMultiple = multer({ storage: storage }).array("images", 50);
 
+// Routes
 router.get("/", ensureAuthenticated, async (req, res) => {
   try {
     const projects = await Project.find({});
@@ -43,7 +57,10 @@ router.post("/projects/multiple", uploadMultiple, async (req, res) => {
       category: "graphic",
       imageUrl: `/uploads/${file.filename}`,
     }));
+
     await Project.insertMany(projects);
+    clearCache(); // Clear the cache after creating a new project
+
     res.redirect("/");
   } catch (err) {
     console.error("Error creating multiple projects:", err);
@@ -51,30 +68,14 @@ router.post("/projects/multiple", uploadMultiple, async (req, res) => {
   }
 });
 
-router.get("/test", ensureAuthenticated, async (req, res) => {
-  try {
-    const projects = await Project.find({});
-    const admins = await admin.find({});
-    res.render("test", { projects, admins });
-  } catch (err) {
-    console.error("Error fetching projects:", err);
-    res.status(500).send("Server Error");
-  }
-});
-
 router.get("/projects/category/:category", async (req, res) => {
   try {
     const { category } = req.params;
-
-    // Fetch projects by category
     const projects = await Project.find({ category });
 
-    // If no projects are found, return a 404 status
     if (projects.length === 0) {
       return res.status(404).send("No projects found for this category");
     }
-
-    // Return the projects as JSON
     res.json(projects);
   } catch (err) {
     console.error("Error fetching projects by category:", err);
@@ -120,6 +121,8 @@ router.post("/projects", upload.single("image"), async (req, res) => {
     });
 
     await newProject.save();
+    clearCache(); // Clear the cache after creating a new project
+
     res.redirect("/");
   } catch (err) {
     console.error("Error creating project:", err);
@@ -145,6 +148,9 @@ router.post("/projects/:id", upload.single("image"), async (req, res) => {
     }
 
     await project.save();
+      clearCache();  
+ // Clear the cache after updating the project
+
     res.redirect("/");
   } catch (err) {
     console.error("Error updating project:", err);
@@ -158,8 +164,11 @@ router.delete("/projects/:id", async (req, res) => {
     if (!result) {
       return res.status(404).send("Project not found");
     }
+
+      clearCache();  
+ // Clear the cache after deleting a project
+
     res.status(200).send("ok");
-    // res.redirect("/");
   } catch (err) {
     console.error("Error deleting project:", err);
     res.status(500).send(err.message);
